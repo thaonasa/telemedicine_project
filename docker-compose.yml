@@ -1,0 +1,38 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"     # vẫn cần cho nginx proxy nội bộ
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    # Không publish port 3000 để tránh xung đột
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+
+volumes:
+  postgres_data:
