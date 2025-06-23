@@ -7,20 +7,38 @@ on:
 
 jobs:
   deploy:
+    name: SSH Deploy to Server
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v3
 
-      - name: Deploy to server via SSH
-        uses: appleboy/ssh-action@v0.1.10
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH and deploy
+        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            # Tạo thư mục nếu chưa có
+            mkdir -p ~/telemedicine_project
+
+            # Di chuyển vào thư mục project
             cd ~/telemedicine_project
+
+            # Nếu repo chưa clone thì clone
+            if [ ! -d ".git" ]; then
+              git clone git@github.com:thaonasa/telemedicine_project.git .
+            fi
+
+            # Pull code mới nhất
+            git reset --hard
             git pull origin main
+
+            # Cập nhật .env nếu cần (bạn có thể thêm bước riêng nếu muốn)
+
+            # Restart Docker services
             docker compose down -v
             docker compose up -d --build
 
