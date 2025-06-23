@@ -1,8 +1,10 @@
+version: "3.9"
+
 services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"     # vẫn cần cho nginx proxy nội bộ
+      - "8000:8000"     # Cho phép Nginx proxy tới backend
     environment:
       - DATABASE_URL=${DATABASE_URL}
     depends_on:
